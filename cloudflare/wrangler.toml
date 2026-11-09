@@ -1,0 +1,15 @@
+name = "ichigyo-coach"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+workers_dev = true
+routes = [{ pattern = "ichigyo.sakurayu.tech", custom_domain = true }]
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = ["/api/*"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ichigyo-coach"
+database_id = "d6425c9d-b840-4ac2-8d31-aba28e3dd848"

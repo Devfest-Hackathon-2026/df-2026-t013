@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT NOT NULL, email TEXT NOT NULL, role TEXT NOT NULL, code TEXT UNIQUE);
+CREATE TABLE IF NOT EXISTS links (student TEXT NOT NULL REFERENCES users(id), teacher TEXT NOT NULL REFERENCES users(id), PRIMARY KEY(student, teacher));
+CREATE TABLE IF NOT EXISTS submissions (id TEXT PRIMARY KEY, student TEXT NOT NULL REFERENCES users(id), title TEXT NOT NULL, created INTEGER NOT NULL, mime TEXT NOT NULL, analysis TEXT NOT NULL, immediate TEXT NOT NULL, draft TEXT, published TEXT, conversation TEXT NOT NULL DEFAULT '[]');
+CREATE TABLE IF NOT EXISTS image_chunks (submission TEXT NOT NULL REFERENCES submissions(id) ON DELETE CASCADE, part INTEGER NOT NULL, data TEXT NOT NULL, PRIMARY KEY(submission, part));
+CREATE TABLE IF NOT EXISTS ai_usage (day TEXT PRIMARY KEY, calls INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS ai_totals (id INTEGER PRIMARY KEY CHECK(id=1), calls INTEGER NOT NULL);
+CREATE INDEX IF NOT EXISTS submissions_student ON submissions(student, created);
+CREATE INDEX IF NOT EXISTS links_teacher ON links(teacher, student);

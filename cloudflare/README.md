@@ -1,9 +1,13 @@
-# Cloudflare移行作業
+# 審査用Webアプリ
 
-試験用WorkerとD1データベースを作成済みです。既存のローカルSQLiteは自動移行されません。AIの認証は未設定で、実際の生徒データを使う段階ではありません。
+Cloudflare WorkersとD1で画面・API・データを提供し、Cloud Runの中継を通じてVertex AIを利用します。公開先は https://ichigyo.sakurayu.tech です。
 
-`node --test cloudflare/worker.test.mjs` で認証・権限管理の基本テスト、`npx wrangler deploy --dry-run --config cloudflare/wrangler.toml` でデプロイ構成を確認します。
+審査用ログインは先生 `teacher1@sample.com`〜`teacher5@sample.com` と生徒 `student1@sample.com`〜`student5@sample.com` です。旧アドレス `teacher@sample.com` と `student@sample.com` は、それぞれ先生1と生徒1の互換用の別名です。これはメール認証や本人確認ではなく、ブラウザごとにランダムなデモ環境を作成する機能です。同じブラウザでは役割を切り替えることができ、別ブラウザでは先生の招待コードを生徒が入力すると接続できます。実際の生徒の個人情報や答案は入力しないでください。ブラウザデータを消すと、同じ環境には戻れなくなります。既存のGoogleログイン由来のユーザーデータにはデモからアクセスできません。
 
-Geminiの利用にはサービスアカウントをWorkerのシークレットに設定し、期限を指定する必要があります。呼び出しを1日20回、累計100回に制限し、設定期限とクレジット終了日前日の早い方で停止します。制限は利用を抑えるためのもので、Google Cloudの追加請求ゼロを保証するものではありません。料金設定、クレジット残高、別サービスからの使用状況を確認するまではAIを有効化しないでください。
+認証トークンの署名用に、Worker secret `DEMO_SESSION_SECRET` が必要です。十分に長いランダム値を設定し、ソースに書き込まないでください。変更すると既存のログイントークンは無効になります。
 
-`gcp_proxy/` には長期のGoogleサービスアカウント鍵を使わずCloud Runの実行IDでVertex AIに接続する代替案があります。Cloud RunとCloudflare間の共有認証、両側の期限設定、課金と権限の確認が必要です。Cloud Run自体にも料金が発生し得るため、現時点ではデプロイしていません。
+AI機能はCloud Runに付与した実行IDでVertex AIに接続し、Workerと中継の間に共有シークレットを使います。AI呼び出しは1日20回、累計100回に制限され、指定期限で停止します。この制限とGoogle Cloudの利用上限は追加請求ゼロを保証しません。テストと審査で同じ枠を消費します。
+
+先生は「課題を設定」から課題を追加し、生徒はログイン後の接続画面で先生の招待コードを入力してから、先生を選択してその先生の課題を提出します。「先生を切り替える」から、つながった別の先生の課題や提出履歴を表示できます。先生側の招待画面にある識別番号は、生徒側の先生選択画面と一致します。接続前の生徒は接続画面以外に移動できず、提出や課題一覧のAPIも利用できません。先生の課題は、その先生と接続した生徒にだけ表示されます。課題の保存には `migrations/0002_assignments.sql` を既存DBに一度だけ適用します。新規DBには `schema.sql` を使います。先生をひも付ける前に作成された提出は、履歴の「以前の提出（先生未指定）」に表示します。
+
+テスト：`node --test cloudflare/worker.test.mjs cloudflare/integration.test.mjs cloudflare/equations.test.mjs cloudflare/gemini.test.mjs cloudflare/proxy.integration.test.mjs`

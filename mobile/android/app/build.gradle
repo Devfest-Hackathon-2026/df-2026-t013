@@ -1,6 +1,0 @@
-plugins { id 'com.android.application' }
-android {
-    namespace 'jp.thinkingnote.coach'
-    compileSdk 35
-    defaultConfig { applicationId 'jp.thinkingnote.coach'; minSdk 26; targetSdk 35; versionCode 1; versionName '1.0' }
-}
